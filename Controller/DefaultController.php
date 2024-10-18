@@ -625,24 +625,26 @@ class DefaultController extends AbstractController
     /**
      * @Route("/update_automatic_call", name="settings_update_automatic_call", methods={"POST"})
      */
-    public function updateAutomaticCall(Request $request): JsonResponse
+    public function updateAutomaticCall(Request $request, UnidadeSettingsRepository $settingsRepo): JsonResponse
     {
         $em = $this->getDoctrine()->getManager();
         $usuario = $this->getUser();
         $unidade = $usuario->getLotacao()->getUnidade();
 
+        $settings = $settingsRepo->findOrCreateByUnidade($unidade);
+
         $data = json_decode($request->getContent(), true);
 
-        $unidade->setAutomaticCallEnabled($data['enabled'] ?? false);
-        $unidade->setAutomaticCallInterval($data['interval'] ?? 0);
+        $settings->setAutomaticCallEnabled($data['enabled'] ?? false);
+        $settings->setAutomaticCallInterval($data['interval'] ?? 0);
 
-        $em->persist($unidade);
+        $em->persist($settings);
         $em->flush();
 
         $envelope = new Envelope();
         $envelope->setData([
-            'enabled' => $unidade->isAutomaticCallEnabled(),
-            'interval' => $unidade->getAutomaticCallInterval(),
+            'enabled' => $settings->isAutomaticCallEnabled(),
+            'interval' => $settings->getAutomaticCallInterval(),
         ]);
 
         return $this->json($envelope);
@@ -651,15 +653,17 @@ class DefaultController extends AbstractController
     /**
      * @Route("/get_automatic_call", name="settings_get_automatic_call", methods={"GET"})
      */
-    public function getAutomaticCall(): JsonResponse
+    public function getAutomaticCall(UnidadeSettingsRepository $settingsRepo): JsonResponse
     {
         $usuario = $this->getUser();
         $unidade = $usuario->getLotacao()->getUnidade();
 
+        $settings = $settingsRepo->findOrCreateByUnidade($unidade);
+
         $envelope = new Envelope();
         $envelope->setData([
-            'enabled' => $unidade->isAutomaticCallEnabled(),
-            'interval' => $unidade->getAutomaticCallInterval(),
+            'enabled' => $settings->isAutomaticCallEnabled(),
+            'interval' => $settings->getAutomaticCallInterval(),
         ]);
 
         return $this->json($envelope);
