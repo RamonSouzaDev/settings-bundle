@@ -18,8 +18,8 @@
             servicoUsuario: {},
             servicoUnidade: null,
             automaticCall: {
-                enabled: unidade.automaticCallConfig ? unidade.automaticCallConfig.enabled : false,
-                interval: unidade.automaticCallConfig ? unidade.automaticCallConfig.interval : 0
+                enabled: false,
+                interval: 0
             }
         },
         computed: {
@@ -51,15 +51,30 @@
                 });
             },
 
-            updateAutomaticCall() {
-                axios.post(Routing.generate('novosga_settings_update_automatic_call'), this.automaticCall)
-                    .then(() => {
-                        App.notify('Configuração de chamada automática atualizada com sucesso');
+            getAutomaticCallSettings() {
+                axios.get('/settings/get_automatic_call')
+                    .then(response => {
+                        if (response.data.success) {
+                            this.automaticCall = response.data.data;
+                        }
                     })
-                    .catch((error) => {
-                        App.notify(error.response.data.message, 'error');
+                    .catch(error => {
+                        console.error('Erro ao obter configurações:', error);
                     });
             },
+            updateAutomaticCall() {
+                axios.post('/settings/update_automatic_call', this.automaticCall)
+                    .then(response => {
+                        if (response.data.success) {
+                            // Atualização bem-sucedida
+                            alert('Configurações salvas com sucesso!');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erro ao salvar configurações:', error);
+                    });
+            },
+            
 
             loadServicos: function () {
                 var self = this,
@@ -307,6 +322,7 @@
             
             this.loadServicosUnidade();
             this.loadContadores();
+            this.getAutomaticCallSettings();    
         }
     });
 

@@ -623,28 +623,44 @@ class DefaultController extends AbstractController
     }
     
     /**
-     * @Route("/update_automatic_call", name="novosga_settings_update_automatic_call", methods={"POST"})
+     * @Route("/settings/update_automatic_call", name="settings_update_automatic_call", methods={"POST"})
      */
-    public function updateAutomaticCall(Request $request)
+    public function updateAutomaticCall(Request $request): JsonResponse
     {
-        $envelope = new Envelope();
-        
         $em = $this->getDoctrine()->getManager();
         $usuario = $this->getUser();
         $unidade = $usuario->getLotacao()->getUnidade();
 
         $data = json_decode($request->getContent(), true);
 
-        // Assuming you've added a new field to the Unidade entity called 'automaticCallConfig'
-        $unidade->setAutomaticCallConfig([
-            'enabled' => $data['enabled'] ?? false,
-            'interval' => $data['interval'] ?? 0
-        ]);
+        $unidade->setAutomaticCallEnabled($data['enabled'] ?? false);
+        $unidade->setAutomaticCallInterval($data['interval'] ?? 0);
 
         $em->persist($unidade);
         $em->flush();
 
-        $envelope->setData($unidade);
+        $envelope = new Envelope();
+        $envelope->setData([
+            'enabled' => $unidade->isAutomaticCallEnabled(),
+            'interval' => $unidade->getAutomaticCallInterval(),
+        ]);
+
+        return $this->json($envelope);
+    }
+
+    /**
+     * @Route("/settings/get_automatic_call", name="settings_get_automatic_call", methods={"GET"})
+     */
+    public function getAutomaticCall(): JsonResponse
+    {
+        $usuario = $this->getUser();
+        $unidade = $usuario->getLotacao()->getUnidade();
+
+        $envelope = new Envelope();
+        $envelope->setData([
+            'enabled' => $unidade->isAutomaticCallEnabled(),
+            'interval' => $unidade->getAutomaticCallInterval(),
+        ]);
 
         return $this->json($envelope);
     }
