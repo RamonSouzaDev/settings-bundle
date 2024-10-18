@@ -204,17 +204,17 @@
             </div>
            <div id="tab-atendimento" class="tab-pane">
                 <div class="row">
-                    <!-- Coluna da Lista de Usuários -->
-                    <div class="col-md-9">
-                        <div class="row">
-                            <div class="col-md-6 mb-4" v-for="usuario in usuarios">
-                                <div class="card h-100">
-                                    <div class="card-header">
-                                        {% verbatim %}
-                                            {{ usuario.nome }} ({{ usuario.login }})
-                                        {% endverbatim %}
-                                    </div>
-                                    <div class="card-body">
+                    <!-- Coluna de Lista de Usuários e suas Configurações -->
+                    <div class="col-md-8">
+                        <div v-for="usuario in usuarios" class="card mb-4">
+                            <div class="card-header">
+                                {% verbatim %}
+                                    {{ usuario.nome }} ({{ usuario.login }})
+                                {% endverbatim %}
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
                                         <div class="form-group">
                                             <label>{% trans %}Local{% endtrans %}</label>
                                             <select class="form-control" v-model="usuario.local" v-on:change="updateUsuario(usuario)">
@@ -236,9 +236,9 @@
                                             </select>
                                         </div>
                                     </div>
-                                    <div class="card-footer">
+                                    <div class="col-md-6">
                                         <h6>{% trans %}Serviços{% endtrans %}</h6>
-                                        <ul class="list-group list-group-flush">
+                                        <ul class="list-group">
                                             <li class="list-group-item p-2" v-for="servicoUsuario in usuario.servicos">
                                                 <div class="d-flex justify-content-between align-items-center">
                                                     <span>{% verbatim %}{{ servicoUsuario.sigla }} - {{ servicoUsuario.nome }}{% endverbatim %}</span>
@@ -276,9 +276,9 @@
                         </div>
                     </div>
 
-                    <!-- Coluna da Configuração de Chamada Automática -->
-                    <div class="col-md-3">
-                        <div class="card mb-4 sticky-top" style="top: 20px;">
+                    <!-- Coluna de Configuração de Chamada Automática -->
+                    <div class="col-md-4">
+                        <div class="card sticky-top" style="top: 20px;">
                             <div class="card-header">
                                 {% trans %}Configuração de Chamada Automática{% endtrans %}
                             </div>
