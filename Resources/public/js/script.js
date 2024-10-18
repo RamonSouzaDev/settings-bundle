@@ -52,27 +52,35 @@
             },
 
             getAutomaticCallSettings() {
-                axios.get('/settings/get_automatic_call')
-                    .then(response => {
-                        if (response.data.success) {
-                            this.automaticCall = response.data.data;
+                App.ajax({
+                    url: App.url('/novosga.settings/get_automatic_call'),
+                    type: 'get',
+                    success: (response) => {
+                        if (response.success) {
+                            this.automaticCall = response.data;
                         }
-                    })
-                    .catch(error => {
+                    },
+                    error: (error) => {
                         console.error('Erro ao obter configurações:', error);
-                    });
+                    }
+                });
             },
+    
             updateAutomaticCall() {
-                axios.post('/settings/update_automatic_call', this.automaticCall)
-                    .then(response => {
-                        if (response.data.success) {
+                App.ajax({
+                    url: App.url('/novosga.settings/update_automatic_call'),
+                    type: 'post',
+                    data: this.automaticCall,
+                    success: (response) => {
+                        if (response.success) {
                             // Atualização bem-sucedida
                             alert('Configurações salvas com sucesso!');
                         }
-                    })
-                    .catch(error => {
+                    },
+                    error: (error) => {
                         console.error('Erro ao salvar configurações:', error);
-                    });
+                    }
+                });
             },
             
 
