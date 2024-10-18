@@ -622,7 +622,7 @@ class DefaultController extends AbstractController
         return $letter;
     }
     
-     /**
+    /**
      * @Route("/update_automatic_call", name="settings_update_automatic_call", methods={"POST"})
      */
     public function updateAutomaticCall(Request $request): JsonResponse
