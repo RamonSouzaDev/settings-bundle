@@ -620,5 +620,32 @@ class DefaultController extends AbstractController
         }
         
         return $letter;
-    }   
+    }
+    
+    /**
+     * @Route("/update_automatic_call", name="novosga_settings_update_automatic_call", methods={"POST"})
+     */
+    public function updateAutomaticCall(Request $request)
+    {
+        $envelope = new Envelope();
+        
+        $em = $this->getDoctrine()->getManager();
+        $usuario = $this->getUser();
+        $unidade = $usuario->getLotacao()->getUnidade();
+
+        $data = json_decode($request->getContent(), true);
+
+        // Assuming you've added a new field to the Unidade entity called 'automaticCallConfig'
+        $unidade->setAutomaticCallConfig([
+            'enabled' => $data['enabled'] ?? false,
+            'interval' => $data['interval'] ?? 0
+        ]);
+
+        $em->persist($unidade);
+        $em->flush();
+
+        $envelope->setData($unidade);
+
+        return $this->json($envelope);
+    }
 }
