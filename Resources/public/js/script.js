@@ -16,7 +16,11 @@
             servicosSearch: '',
             servicosUnidade: [],
             servicoUsuario: {},
-            servicoUnidade: null
+            servicoUnidade: null,
+            automaticCall: {
+                enabled: unidade.automaticCallConfig ? unidade.automaticCallConfig.enabled : false,
+                interval: unidade.automaticCallConfig ? unidade.automaticCallConfig.interval : 0
+            }
         },
         computed: {
             availableServices: function () {
@@ -45,6 +49,16 @@
                 this.loadServicos().then(function () {
                     $('#dialog-servicos').modal('show');
                 });
+            },
+
+            updateAutomaticCall() {
+                axios.post(Routing.generate('novosga_settings_update_automatic_call'), this.automaticCall)
+                    .then(() => {
+                        App.notify('Configuração de chamada automática atualizada com sucesso');
+                    })
+                    .catch((error) => {
+                        App.notify(error.response.data.message, 'error');
+                    });
             },
 
             loadServicos: function () {
