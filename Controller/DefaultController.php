@@ -622,8 +622,8 @@ class DefaultController extends AbstractController
         return $letter;
     }
     
-    /**
-     * @Route("/settings/update_automatic_call", name="settings_update_automatic_call", methods={"POST"})
+     /**
+     * @Route("/update_automatic_call", name="settings_update_automatic_call", methods={"POST"})
      */
     public function updateAutomaticCall(Request $request): JsonResponse
     {
@@ -649,7 +649,7 @@ class DefaultController extends AbstractController
     }
 
     /**
-     * @Route("/settings/get_automatic_call", name="settings_get_automatic_call", methods={"GET"})
+     * @Route("/get_automatic_call", name="settings_get_automatic_call", methods={"GET"})
      */
     public function getAutomaticCall(): JsonResponse
     {
