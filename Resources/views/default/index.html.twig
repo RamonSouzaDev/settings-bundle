@@ -204,39 +204,17 @@
             </div>
            <div id="tab-atendimento" class="tab-pane">
                 <div class="row">
-                    <!-- Coluna de Configuração de Chamada Automática -->
-                    <div class="col-md-3">
-                        <div class="card mb-4 sticky-top" style="top: 20px;">
-                            <div class="card-header">
-                                {% trans %}Configuração de Chamada Automática{% endtrans %}
-                            </div>
-                            <div class="card-body">
-                                <div class="form-group">
-                                    <div class="custom-control custom-switch">
-                                        <input type="checkbox" class="custom-control-input" id="automaticCallEnabled" v-model="automaticCall.enabled">
-                                        <label class="custom-control-label" for="automaticCallEnabled">{% trans %}Habilitar chamada automática{% endtrans %}</label>
+                    <!-- Coluna da Lista de Usuários -->
+                    <div class="col-md-8">
+                        <div class="row">
+                            <div class="col-md-6 mb-4" v-for="usuario in usuarios">
+                                <div class="card h-100">
+                                    <div class="card-header">
+                                        {% verbatim %}
+                                            {{ usuario.nome }} ({{ usuario.login }})
+                                        {% endverbatim %}
                                     </div>
-                                </div>
-                                <div class="form-group" v-if="automaticCall.enabled">
-                                    <label for="automaticCallInterval">{% trans %}Intervalo (em segundos){% endtrans %}</label>
-                                    <input type="number" class="form-control" id="automaticCallInterval" v-model="automaticCall.interval" min="1">
-                                </div>
-                                <button class="btn btn-primary btn-block" @click="updateAutomaticCall">{% trans %}Salvar{% endtrans %}</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Coluna de Lista de Usuários e suas Configurações -->
-                    <div class="col-md-9">
-                        <div v-for="usuario in usuarios" class="card mb-4">
-                            <div class="card-header">
-                                {% verbatim %}
-                                    {{ usuario.nome }} ({{ usuario.login }})
-                                {% endverbatim %}
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6">
+                                    <div class="card-body">
                                         <div class="form-group">
                                             <label>{% trans %}Local{% endtrans %}</label>
                                             <select class="form-control" v-model="usuario.local" v-on:change="updateUsuario(usuario)">
@@ -258,9 +236,9 @@
                                             </select>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="card-footer">
                                         <h6>{% trans %}Serviços{% endtrans %}</h6>
-                                        <ul class="list-group">
+                                        <ul class="list-group list-group-flush">
                                             <li class="list-group-item p-2" v-for="servicoUsuario in usuario.servicos">
                                                 <div class="d-flex justify-content-between align-items-center">
                                                     <span>{% verbatim %}{{ servicoUsuario.sigla }} - {{ servicoUsuario.nome }}{% endverbatim %}</span>
@@ -294,6 +272,28 @@
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Coluna da Configuração de Chamada Automática -->
+                    <div class="col-md-4">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                {% trans %}Configuração de Chamada Automática{% endtrans %}
+                            </div>
+                            <div class="card-body">
+                                <div class="form-group">
+                                    <div class="custom-control custom-switch">
+                                        <input type="checkbox" class="custom-control-input" id="automaticCallEnabled" v-model="automaticCall.enabled">
+                                        <label class="custom-control-label" for="automaticCallEnabled">{% trans %}Habilitar chamada automática{% endtrans %}</label>
+                                    </div>
+                                </div>
+                                <div class="form-group" v-if="automaticCall.enabled">
+                                    <label for="automaticCallInterval">{% trans %}Intervalo (em segundos){% endtrans %}</label>
+                                    <input type="number" class="form-control" id="automaticCallInterval" v-model="automaticCall.interval" min="1">
+                                </div>
+                                <button class="btn btn-primary btn-block" @click="updateAutomaticCall">{% trans %}Salvar{% endtrans %}</button>
                             </div>
                         </div>
                     </div>
