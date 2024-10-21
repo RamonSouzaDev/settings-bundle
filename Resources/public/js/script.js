@@ -57,7 +57,10 @@
                     type: 'get',
                     success: (response) => {
                         if (response.success) {
-                            this.automaticCall = response.data;
+                            this.automaticCall = {
+                                type: response.data.enabled ? 'automatic' : 'manual',
+                                interval: response.data.interval
+                            };
                         }
                     },
                     error: (error) => {
@@ -65,20 +68,27 @@
                     }
                 });
             },
-    
+        
             updateAutomaticCall() {
+                const data = {
+                    enabled: this.automaticCall.type === 'automatic',
+                    interval: this.automaticCall.interval
+                };
+        
                 App.ajax({
                     url: App.url('/novosga.settings/update_automatic_call'),
                     type: 'post',
-                    data: this.automaticCall,
+                    data: data,
                     success: (response) => {
                         if (response.success) {
-                            // Atualização bem-sucedida
-                            alert('Configurações salvas com sucesso!');
+                            App.Notification.success('Configurações salvas com sucesso!');
+                            // Atualizar o estado global se necessário
+                            // this.$store.commit('setAutomaticCallEnabled', data.enabled);
                         }
                     },
                     error: (error) => {
                         console.error('Erro ao salvar configurações:', error);
+                        App.Notification.error('Erro ao salvar configurações. Por favor, tente novamente.');
                     }
                 });
             },
