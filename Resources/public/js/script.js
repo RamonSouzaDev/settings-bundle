@@ -81,13 +81,15 @@
                     data: data,
                     success: (response) => {
                         if (response.success) {
-                            //alert('Configurações salvas com sucesso!');
+                            //alert('');
+                            App.Notification.show('Configurações de atendimento', 'Salvo com sucesso!');
                             // Atualizar o estado global se necessário
                             // this.$store.commit('setAutomaticCallEnabled', data.enabled);
                         }
                     },
                     error: (error) => {
                         console.error('Erro ao salvar configurações:', error);
+                        App.Notification.error('Configuração de atendimento', 'Erro ao salvar configurações');
                         //alert('Erro ao salvar configurações. Por favor, tente novamente.');
                     }
                 });
@@ -325,6 +327,11 @@
             },
         },
         mounted() {
+
+            if (!App.Notification.allowed()) {
+                document.getElementById('notification').style.display = 'inline';
+            }
+
             App.SSE.connect([
                 `/unidades/${this.unidade.id}/fila`,
             ]);
