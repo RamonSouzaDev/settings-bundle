@@ -328,10 +328,6 @@
         },
         mounted() {
 
-            if (!App.Notification.allowed()) {
-                document.getElementById('notification').style.display = 'inline';
-            }
-
             App.SSE.connect([
                 `/unidades/${this.unidade.id}/fila`,
             ]);
