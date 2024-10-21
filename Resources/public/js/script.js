@@ -81,14 +81,14 @@
                     data: data,
                     success: (response) => {
                         if (response.success) {
-                            App.Notification.success('Configurações salvas com sucesso!');
+                            alert('Configurações salvas com sucesso!');
                             // Atualizar o estado global se necessário
                             // this.$store.commit('setAutomaticCallEnabled', data.enabled);
                         }
                     },
                     error: (error) => {
                         console.error('Erro ao salvar configurações:', error);
-                        App.Notification.error('Erro ao salvar configurações. Por favor, tente novamente.');
+                        alert('Erro ao salvar configurações. Por favor, tente novamente.');
                     }
                 });
             },
