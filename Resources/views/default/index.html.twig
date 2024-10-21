@@ -34,6 +34,11 @@
                     {% trans %}Atendimento{% endtrans %}
                 </a>
             </li>
+            <li class="nav-item">
+                <a href="#tab-configuracoes-atendimento" data-toggle="tab" class="nav-link">
+                    {% trans %}Configurações de Atendimento{% endtrans %}
+                </a>
+            </li>
         </ul>
         <div class="tab-content">
             <div id="tab-servicos" class="tab-pane active">
@@ -304,6 +309,37 @@
                     </div>
                     
                     
+                </div>
+            </div>
+            <div id="tab-configuracoes-atendimento" class="tab-pane fade">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                {{ 'Configuração de Chamada Automática'|trans }}
+                            </div>
+                            <div class="card-body">
+                                <div class="form-group">
+                                    <label>{{ 'Tipo de chamada'|trans }}</label>
+                                    <div class="custom-control custom-radio">
+                                        <input type="radio" id="callTypeManual" name="callType" class="custom-control-input" value="manual" v-model="automaticCall.type">
+                                        <label class="custom-control-label" for="callTypeManual">{{ 'Chamada Manual'|trans }}</label>
+                                    </div>
+                                    <div class="custom-control custom-radio">
+                                        <input type="radio" id="callTypeAutomatic" name="callType" class="custom-control-input" value="automatic" v-model="automaticCall.type">
+                                        <label class="custom-control-label" for="callTypeAutomatic">{{ 'Chamada automática'|trans }}</label>
+                                    </div>
+                                </div>
+                                <div class="form-group" v-if="automaticCall.type === 'automatic'">
+                                    <label for="automaticCallInterval">{{ 'Intervalo (em segundos)'|trans }}</label>
+                                    <input type="number" class="form-control" id="automaticCallInterval" v-model="automaticCall.interval" min="1">
+                                </div>
+                                <button class="btn btn-primary" @click="updateAutomaticCall">{{ 'Aplicar'|trans }}</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                    </div>
                 </div>
             </div>
         </div>
