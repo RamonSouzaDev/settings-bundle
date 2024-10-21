@@ -273,30 +273,31 @@
                                     </div>
                                 </div>
                             </div>
+                            <!-- Coluna da Configuração de Chamada Automática -->
+                            <div class="col-md-4">
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        {{ 'Configuração de Chamada Automática'|trans }}
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="form-group">
+                                            <div class="custom-control custom-switch">
+                                                <input type="checkbox" class="custom-control-input" id="automaticCallEnabled" v-model="automaticCall.enabled">
+                                                <label class="custom-control-label" for="automaticCallEnabled">{{ 'Habilitar chamada automática'|trans }}</label>
+                                            </div>
+                                        </div>
+                                        <div class="form-group" v-if="automaticCall.enabled">
+                                            <label for="automaticCallInterval">{{ 'Intervalo (em segundos)'|trans }}</label>
+                                            <input type="number" class="form-control" id="automaticCallInterval" v-model="automaticCall.interval" min="1">
+                                        </div>
+                                        <button class="btn btn-primary btn-block" @click="updateAutomaticCall">{{ 'Salvar'|trans }}</button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
-                    <!-- Coluna da Configuração de Chamada Automática -->
-                    <div class="col-md-4">
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                {{ 'Configuração de Chamada Automática'|trans }}
-                            </div>
-                            <div class="card-body">
-                                <div class="form-group">
-                                    <div class="custom-control custom-switch">
-                                        <input type="checkbox" class="custom-control-input" id="automaticCallEnabled" v-model="automaticCall.enabled">
-                                        <label class="custom-control-label" for="automaticCallEnabled">{{ 'Habilitar chamada automática'|trans }}</label>
-                                    </div>
-                                </div>
-                                <div class="form-group" v-if="automaticCall.enabled">
-                                    <label for="automaticCallInterval">{{ 'Intervalo (em segundos)'|trans }}</label>
-                                    <input type="number" class="form-control" id="automaticCallInterval" v-model="automaticCall.interval" min="1">
-                                </div>
-                                <button class="btn btn-primary btn-block" @click="updateAutomaticCall">{{ 'Salvar'|trans }}</button>
-                            </div>
-                        </div>
-                    </div>
+                    
                 </div>
             </div>
         </div>
