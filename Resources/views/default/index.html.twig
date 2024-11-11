@@ -34,9 +34,9 @@
                     {% trans %}Atendimento{% endtrans %}
                 </a>
             </li>
-            <li class="nav-item">
-                <a href="#tab-configuracoes-atendimento" data-toggle="tab" class="nav-link">
-                    {% trans %}Configurações de Atendimento{% endtrans %}
+             <li class="nav-item">
+                <a href="#tab-painel" data-toggle="tab" class="nav-link">
+                    {% trans %}Configurações do painel{% endtrans %}
                 </a>
             </li>
         </ul>
@@ -207,125 +207,188 @@
                     </div>
                 </div>
             </div>
-           <div id="tab-atendimento" class="tab-pane">
-                <div class="row no-gutters">
-                    <!-- Coluna da Lista de Usuários -->
-                    <div class="col-md-8">
-                        <div class="row">
-                            <div class="col-md-6 mb-4" v-for="usuario in usuarios">
-                                <div class="card h-100">
-                                    <div class="card-header">
-                                        {% verbatim %}
-                                            {{ usuario.nome }} ({{ usuario.login }})
-                                        {% endverbatim %}
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="form-group">
-                                            <label>{% trans %}Local{% endtrans %}</label>
+            <div id="tab-atendimento" class="tab-pane">
+                <div class="row">
+                    <div class="col-md-4 col-sm-6 col-xs-12" v-for="usuario in usuarios">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                {% verbatim %}
+                                    {{ usuario.nome }} ({{ usuario.login }})
+                                {% endverbatim %}
+                            </div>
+                            <table class="table">
+                                <tbody>
+                                    <tr>
+                                        <th>
+                                            {% trans %}Local{% endtrans %}
+                                        </th>
+                                        <td>
                                             <select class="form-control" v-model="usuario.local" v-on:change="updateUsuario(usuario)">
                                                 {% for local in locais %}
                                                     <option value="{{ local.id }}">{{ local.nome }}</option>
                                                 {% endfor %}
                                             </select>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>{% trans %}Número do local{% endtrans %}</label>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>
+                                            {% trans %}Número do local{% endtrans %}
+                                        </th>
+                                        <td>
                                             <input type="number" class="form-control" v-model="usuario.numero" v-on:change="updateUsuario(usuario)">
-                                        </div>
-                                        <div class="form-group">
-                                            <label>{% trans %}Tipo de atendimento{% endtrans %}</label>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>
+                                            {% trans %}Tipo de atendimento{% endtrans %}
+                                        </th>
+                                        <td>
                                             <select class="form-control" v-model="usuario.tipoAtendimento" v-on:change="updateUsuario(usuario)">
                                                 {% for k, v in tiposAtendimento %}
                                                 <option value="{{k}}">{{v}}</option>
                                                 {% endfor %}
                                             </select>
-                                        </div>
-                                    </div>
-                                    <div class="card-footer">
-                                        <h6>{% trans %}Serviços{% endtrans %}</h6>
-                                        <ul class="list-group list-group-flush">
-                                            <li class="list-group-item p-2" v-for="servicoUsuario in usuario.servicos">
-                                                <div class="d-flex justify-content-between align-items-center">
-                                                    <span>{% verbatim %}{{ servicoUsuario.sigla }} - {{ servicoUsuario.nome }}{% endverbatim %}</span>
-                                                    <div class="input-group input-group-sm" style="width: 120px;">
-                                                        <input type="number" class="form-control" v-model="servicoUsuario.peso" v-on:change="updateServicoUsuario(usuario, servicoUsuario)" placeholder="Peso">
-                                                        <div class="input-group-append">
-                                                            <button type="button" class="btn btn-danger btn-sm" v-on:click="removeServicoUsuario(usuario, servicoUsuario)">
-                                                                <i class="fa fa-trash"></i>
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </li>
-                                        </ul>
-                                        <div class="mt-2" v-if="usuario.servicos.length === 0">
-                                            <p class="text-muted">{% trans %}Nenhum serviço{% endtrans %}</p>
-                                        </div>
-                                        <div class="input-group mt-2">
-                                            <select class="form-control" v-model="servicoUsuario[usuario.id]">
-                                                <option v-for="servicoUnidade in availableServices[usuario.id]" v-bind:value="servicoUnidade">
-                                                    {% verbatim %}
-                                                        {{ servicoUnidade.sigla }} - {{ servicoUnidade.servico.nome }}
-                                                    {% endverbatim %}
-                                                </option>
-                                            </select>
-                                            <div class="input-group-append">
-                                                <button type="button" class="btn btn-secondary" v-on:click="addServicoUsuario(usuario)">
-                                                    <i class="fa fa-plus"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>
+                                            {% trans %}Serviço{% endtrans %}
+                                        </th>
+                                        <th>
+                                            {% trans %}Peso{% endtrans %}
+                                        </th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="servicoUsuario in usuario.servicos">
+                                        <td>
+                                            {% verbatim %}
+                                                {{ servicoUsuario.sigla }} - {{ servicoUsuario.nome }}
+                                            {% endverbatim %}
+                                        </td>
+                                        <td style="width: 100px">
+                                            <input type="number" class="form-control" v-model="servicoUsuario.peso" v-on:change="updateServicoUsuario(usuario, servicoUsuario)">
+                                        </td>
+                                        <td class="text-right">
+                                            <button type="button" class="btn btn-danger" v-on:click="removeServicoUsuario(usuario, servicoUsuario)">
+                                                <i class="fa fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr v-if="usuario.servicos.length === 0">
+                                        <td colspan="2" class="text-muted">
+                                            {% trans %}Nenhum serviço{% endtrans %}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div class="panel-footer">
+                                <div class="input-group">
+                                    <select class="form-control" v-model="servicoUsuario[usuario.id]">
+                                        <option v-for="servicoUnidade in availableServices[usuario.id]" v-bind:value="servicoUnidade">
+                                            {% verbatim %}
+                                                {{ servicoUnidade.sigla }} - {{ servicoUnidade.servico.nome }}
+                                            {% endverbatim %}
+                                        </option>
+                                    </select>
+
+                                    <span class="input-group-btn">
+                                        <button type="button" class="btn btn-secondary" type="button" v-on:click="addServicoUsuario(usuario)">
+                                            <i class="fa fa-plus"></i>
+                                        </button>
+                                    </span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
-                    
                 </div>
             </div>
-            <div id="tab-configuracoes-atendimento" class="tab-pane fade">
+
+            {# New Panel Settings Tab #}
+            <div id="tab-painel" class="tab-pane">
                 <div class="row">
-                    <div class="col-md-6">
-                        <div class="card mb-4">
+                    <div class="col-lg-8">
+                        {{ form_start(painelForm, { attr: { 'v-on:submit.prevent': 'updatePainel', 'enctype': 'multipart/form-data' } }) }}
+                        <div class="card">
                             <div class="card-header">
-                                {{ 'Configuração de Chamada Automática'|trans }}
+                                {{ 'label.painel.settings'|trans }}
                             </div>
                             <div class="card-body">
-                                <div class="form-group">
-                                    <label>{{ 'Tipo de chamada'|trans }}</label>
-                                    <div class="custom-control custom-radio">
-                                        <input type="radio" id="callTypeManual" name="callType" class="custom-control-input" value="manual" v-model="automaticCall.type">
-                                        <label class="custom-control-label" for="callTypeManual">{{ 'Chamada Manual'|trans }}</label>
-                                    </div>
-                                    <div class="custom-control custom-radio">
-                                        <input type="radio" id="callTypeAutomatic" name="callType" class="custom-control-input" value="automatic" v-model="automaticCall.type">
-                                        <label class="custom-control-label" for="callTypeAutomatic">{{ 'Chamada automática'|trans }}</label>
-                                    </div>
+                                {{ form_row(painelForm.videoUrl, { 
+                                    label: 'label.painel.video_url'|trans,
+                                    attr: { 'v-model': 'painelConfig.videoUrl' }
+                                }) }}
+                                
+                                {{ form_row(painelForm.texto, { 
+                                    label: 'label.painel.texto'|trans,
+                                    attr: { 'v-model': 'painelConfig.texto' }
+                                }) }}
+                                
+                                {{ form_row(painelForm.descricao, { 
+                                    label: 'label.painel.descricao'|trans,
+                                    attr: { 
+                                        rows: 3,
+                                        'v-model': 'painelConfig.descricao'
+                                    }
+                                }) }}
+                                
+                                {{ form_row(painelForm.footer, { 
+                                    label: 'label.painel.footer'|trans,
+                                    attr: { 'v-model': 'painelConfig.footer' }
+                                }) }}
+                                
+                                {{ form_row(painelForm.image, { 
+                                    label: 'label.painel.image'|trans,
+                                    attr: { 
+                                        'v-on:change': 'onFileChange',
+                                        'accept': 'image/*',
+                                        'class': 'form-control custom-file-input',
+                                        'data-filename': painelConfig and painelConfig.image ? painelConfig.image : ''
+                                    },
+                                    row_attr: {
+                                        class: 'custom-file'
+                                    }
+                                }) }}
+
+                                <div v-if="painelConfig && painelConfig.imageUrl" class="current-image mb-3">
+                                    <label class="form-label">{{ 'label.painel.current_image'|trans }}</label>
+                                    <img :src="painelConfig.imageUrl" class="img-thumbnail" style="max-height: 150px">
                                 </div>
-                                <div class="form-group" v-if="automaticCall.type === 'automatic'">
-                                    <label for="automaticCallInterval">{{ 'Intervalo (em segundos)'|trans }}</label>
-                                    <input type="number" class="form-control" id="automaticCallInterval" v-model="automaticCall.interval" min="1">
-                                </div>
-                                <button class="btn btn-primary btn-block" @click="updateAutomaticCall">
+
+                                <button type="submit" class="btn btn-primary">
                                     <i class="fa fa-save"></i>
-                                    {{ 'Salvar configuração de atendimento'|trans }}
+                                    {{ 'button.save_panel'|trans }}
                                 </button>
                             </div>
                         </div>
+                        {{ form_end(painelForm) }}
                     </div>
-                    <div class="col-md-6">
+                    
+                    <div class="col-lg-4" hidden>
+                        <div class="card">
+                            <div class="card-header">
+                                {{ 'label.painel.preview'|trans }}
+                            </div>
+                            <div class="card-body">
+                                <div v-if="painelConfig" class="panel-preview">
+                                    <img v-if="painelConfig.imageUrl" 
+                                        :src="painelConfig.imageUrl" 
+                                        class="img-fluid mb-3">
+                                    <h4 v-if="painelConfig.texto">[[ painelConfig.texto ]]</h4>
+                                    <p v-if="painelConfig.descricao">[[ painelConfig.descricao ]]</p>
+                                    <p v-if="painelConfig.footer" class="text-muted">[[ painelConfig.footer ]]</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-
-        <p class="links">
-            <button id="notification" type="button" class="btn btn-warning" onclick="App.Notification.request(this)" style="display: none">
-                <i class="fa fa-exclamation"></i>&nbsp;
-                {{ 'button.enable_notification'|trans }}
-            </button>
-        </p>
 
         <div id="dialog-servicos" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
             <div class="modal-dialog">
@@ -450,6 +513,18 @@
             desejaReiniciarSenhas = '{% trans %}Deseja realmente reiniciar as senhas?{% endtrans %}',
             desejaReiniciar       = '{% trans %}Deseja realmente reiniciar o contador?{% endtrans %}',
             desejaLimparDados     = '{% trans %}Deseja realmente limpar os dados de atendimento?{% endtrans %}';
+            painelConfig          = {{ painelConfig ? painelConfig|json_encode()|raw : 'null' }};
+
+            document.querySelectorAll('.custom-file-input').forEach(input => {
+                input.addEventListener('change', e => {
+                    const fileName = e.target.files[0]?.name ?? '';
+                    const next = e.target.nextElementSibling;
+                    next.innerText = fileName;
+                });
+            });
+
+
     </script>
     <script type="text/javascript" src="{{ asset('bundles/novosgasettings/js/script.js') }}"></script>
 {% endblock %}
+

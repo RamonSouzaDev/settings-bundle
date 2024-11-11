@@ -74,6 +74,47 @@
         <source>label.schedule</source>
         <target>Agendamento</target>
       </trans-unit>
+      <!-- New translations for panel settings -->
+      <trans-unit id="15">
+        <source>label.panel_settings</source>
+        <target>Configurações do painel</target>
+      </trans-unit>
+      <trans-unit id="16">
+        <source>label.painel.video_url</source>
+        <target>URL do Vídeo</target>
+      </trans-unit>
+      <trans-unit id="17">
+        <source>label.painel.texto</source>
+        <target>Texto</target>
+      </trans-unit>
+      <trans-unit id="18">
+        <source>label.painel.descricao</source>
+        <target>Descrição</target>
+      </trans-unit>
+      <trans-unit id="19">
+        <source>label.painel.footer</source>
+        <target>Texto do Rodapé</target>
+      </trans-unit>
+      <trans-unit id="20">
+        <source>label.painel.image</source>
+        <target>Upload de Imagem</target>
+      </trans-unit>
+      <trans-unit id="21">
+        <source>label.painel.current_image</source>
+        <target>Imagem atual</target>
+      </trans-unit>
+      <trans-unit id="22">
+        <source>label.painel.preview</source>
+        <target>Visualização</target>
+      </trans-unit>
+      <trans-unit id="23">
+        <source>button.save_panel</source>
+        <target>Salvar configurações do painel</target>
+      </trans-unit>
+      <trans-unit id="24">
+        <source>label.painel.settings</source>
+        <target>Configurações do Painel</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

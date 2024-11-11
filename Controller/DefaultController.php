@@ -11,6 +11,10 @@
 
 namespace Novosga\SettingsBundle\Controller;
 
+use App\Form\PainelUnidadeType;
+use Novosga\Entity\PainelUnidade;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Novosga\Entity\Unidade;
 use Exception;
 use Novosga\Entity\Contador;
 use Novosga\Entity\Local;
@@ -124,6 +128,38 @@ class DefaultController extends AbstractController
         $inlineForm    = $this->createForm(ServicoUnidadeType::class);
         $impressaoForm = $this->createForm(ImpressaoType::class, $unidade->getImpressao());
 
+         // Get panel config
+         $painelConfig = $em
+            ->getRepository(PainelUnidade::class)
+            ->findOneBy(['unidade' => $unidade, 'deletedAt' => null]);
+
+        if (!$painelConfig) {
+            $painelConfig = new PainelUnidade();
+            $painelConfig->setUnidade($unidade);
+        }
+
+        $painelForm = $this->createForm(PainelUnidadeType::class, $painelConfig);
+
+       // Prepare painelConfig data
+        $painelConfigJson = null;
+        if ($painelConfig) {
+            $painelConfigJson = [
+                'id' => $painelConfig->getId(),
+                'texto' => $painelConfig->getTexto(),
+                'descricao' => $painelConfig->getDescricao(),
+                'footer' => $painelConfig->getFooter(),
+                'videoUrl' => $painelConfig->getVideoUrl(),
+                'image' => ''
+            ];
+
+            if ($painelConfig->getImage()) {
+                $painelConfigJson['imageUrl'] = $this->generateUrl(
+                    'novosga_settings_painel_image',
+                    ['id' => $painelConfig->getId()]
+                );
+            }
+        }
+
         return $this->render('@NovosgaSettings/default/index.html.twig', [
             'usuario'          => $usuario,
             'unidade'          => $unidade,
@@ -133,6 +169,8 @@ class DefaultController extends AbstractController
             'form'             => $form->createView(),
             'inlineForm'       => $inlineForm->createView(),
             'impressaoForm'    => $impressaoForm->createView(),
+            'painelForm'       => $painelForm->createView(),
+            'painelConfig'     => $painelConfigJson,
         ]);
     }
     
@@ -667,4 +705,322 @@ class DefaultController extends AbstractController
 
         return $this->json($envelope);
     }
+
+    /**
+     * @Route("/update_painel", name="novosga_settings_update_painel", methods={"POST"})
+     */
+    public function updatePainel(Request $request)
+    {
+        $envelope = new Envelope();
+        
+        $em      = $this->getDoctrine()->getManager();
+        $usuario = $this->getUser();
+        $unidade = $usuario->getLotacao()->getUnidade();
+
+        $painelConfig = $em
+            ->getRepository(PainelUnidade::class)
+            ->findByUnidade($unidade);
+
+        if (!$painelConfig) {
+            $painelConfig = new PainelUnidade();
+            $painelConfig->setUnidade($unidade);
+        }
+
+        $form = $this->createForm(PainelUnidadeType::class, $painelConfig);
+        $form->handleRequest($request);
+
+        // Atualizar dados básicos
+        $painelConfig->setTexto($request->request->get('texto'));
+        $painelConfig->setDescricao($request->request->get('descricao'));
+        $painelConfig->setFooter($request->request->get('footer'));
+        $painelConfig->setVideoUrl($request->request->get('videoUrl'));
+        
+        // Atualizar o layout selecionado
+        $selectedLayout = $request->request->get('layout_tipo');
+        $painelConfig->setSelectedLayout($selectedLayout);
+
+        // Atualizar a data de modificação
+        $painelConfig->setUpdatedAt(new \DateTime());
+        
+        // Verifica e processa a imagem
+        /** @var UploadedFile|null $file */
+        $file = $request->files->get('image');
+        if ($file) {
+            $imageContent = file_get_contents($file->getPathname());
+            if ($imageContent !== false) {
+                $painelConfig->setImage($imageContent);
+            }
+        }
+        
+        // Persistência
+        $em->persist($painelConfig);
+        $em->flush();
+        
+        // Preparar dados de retorno
+        $responseData = [
+            'id' => $painelConfig->getId(),
+            'texto' => $painelConfig->getTexto(),
+            'descricao' => $painelConfig->getDescricao(),
+            'footer' => $painelConfig->getFooter(),
+            'videoUrl' => $painelConfig->getVideoUrl(),
+            'selectedLayout' => $painelConfig->getSelectedLayout() // Incluir o layout selecionado na resposta
+        ];
+
+        if ($painelConfig->getImage()) {
+            $responseData['imageUrl'] = $this->generateUrl(
+                'novosga_settings_painel_image',
+                ['id' => $painelConfig->getId()]
+            );
+        }
+
+        $envelope->setData($responseData);
+        $envelope->setSuccess(true);
+        $envelope->setMessage('Configurações do painel atualizadas com sucesso');
+
+        return $this->json($envelope);
+    }
+
+    /**
+     * @Route("/update_layout", name="novosga_settings_update_layout", methods={"POST"})
+     */
+    public function updateLayout(Request $request)
+    {
+        $envelope = new Envelope();
+        
+        try {
+            // Debug dos dados recebidos
+            $content = $request->getContent();
+            error_log('Raw request content: ' . $content);
+            
+            $allData = $request->request->all();
+            error_log('All request data: ' . print_r($allData, true));
+
+            // Tentar pegar os dados de diferentes formas
+            $selectedLayout = $request->request->get('selectedLayout');
+            $unidadeId = $request->request->get('unidadeId');
+            
+            error_log('Selected Layout: ' . var_export($selectedLayout, true));
+            error_log('Unidade ID: ' . var_export($unidadeId, true));
+
+            // Se os dados não estiverem no request->request, tentar do conteúdo JSON
+            if (!$selectedLayout || !$unidadeId) {
+                $jsonData = json_decode($content, true);
+                if ($jsonData) {
+                    $selectedLayout = $jsonData['selectedLayout'] ?? null;
+                    $unidadeId = $jsonData['unidadeId'] ?? null;
+                    error_log('Data from JSON: ' . print_r($jsonData, true));
+                }
+            }
+
+            if (!$selectedLayout || !$unidadeId) {
+                throw new \InvalidArgumentException('Dados inválidos ou incompletos');
+            }
+
+            $em = $this->getDoctrine()->getManager();
+            $unidade = $em->getRepository(Unidade::class)->find($unidadeId);
+            
+            if (!$unidade) {
+                throw new \Exception("Unidade não encontrada: $unidadeId");
+            }
+
+            $painelConfig = $em
+                ->getRepository(PainelUnidade::class)
+                ->findOneBy(['unidade' => $unidade]);
+
+            if (!$painelConfig) {
+                $painelConfig = new PainelUnidade();
+                $painelConfig->setUnidade($unidade);
+            }
+
+            $painelConfig->setSelectedLayout((string)$selectedLayout);
+            $painelConfig->setUpdatedAt(new \DateTime());
+            
+            $em->persist($painelConfig);
+            $em->flush();
+
+            $responseData = [
+                'id' => $painelConfig->getId(),
+                'selectedLayout' => $painelConfig->getSelectedLayout(),
+                'unidadeId' => $unidade->getId()
+            ];
+
+            $envelope->setSuccess(true);
+            $envelope->setData($responseData);
+            $envelope->setMessage('Layout atualizado com sucesso');
+
+        } catch (\Exception $e) {
+            error_log('Error in updateLayout: ' . $e->getMessage());
+            error_log('Stack trace: ' . $e->getTraceAsString());
+            
+            $envelope->setSuccess(false);
+            $envelope->setMessage('Erro ao atualizar layout: ' . $e->getMessage());
+        }
+
+        return $this->json($envelope);
+    }
+
+    /**
+     * @Route("/painel/image/{id}", name="novosga_settings_painel_image", methods={"GET"})
+     */
+    public function getPainelImage(PainelUnidade $painelConfig)
+    {
+        $image = $painelConfig->getImage();
+        if (!$image) {
+            throw $this->createNotFoundException('Imagem não encontrada');
+        }
+
+        // Se for um resource, converte para string
+        if (is_resource($image)) {
+            $image = stream_get_contents($image);
+        }
+
+        $response = new Response($image);
+        $response->headers->set('Content-Type', 'image/png');
+        $response->setPublic();
+        $response->setMaxAge(3600);
+        
+        return $response;
+    }
+
+/**
+ * @Route("/painel/layouts", name="novosga_settings_painel_layouts", methods={"GET"})
+ */
+public function getPainelLayouts(Request $request)
+{
+    try {
+        $em = $this->getDoctrine()->getManager();
+        
+        // Pegar unidade do request
+        $unidadeId = $request->query->get('unidadeId');
+        if (!$unidadeId) {
+            throw new \InvalidArgumentException('ID da unidade é obrigatório');
+        }
+
+        // Buscar a unidade
+        $unidade = $em->getRepository(Unidade::class)->find($unidadeId);
+        if (!$unidade) {
+            throw new \Exception('Unidade não encontrada');
+        }
+
+        // Buscar configuração do painel da unidade
+        $painelConfig = $em
+            ->getRepository(PainelUnidade::class)
+            ->findOneBy(['unidade' => $unidade, 'deletedAt' => null]);
+
+        // Verificar disponibilidade de mídias
+        $hasImage = $painelConfig && $painelConfig->getImage() !== null;
+        $hasVideo = $painelConfig && $painelConfig->getVideoUrl() !== null;
+        $hasText = $painelConfig && $painelConfig->getTexto() !== null;
+        $hasDescription = $painelConfig && $painelConfig->getDescricao() !== null;
+        $hasFooter = $painelConfig && $painelConfig->getFooter() !== null;
+
+        // Lista de layouts com validações completas
+        $layouts = [
+            [
+                'id' => 'layout1',
+                'name' => 'Layout 1',
+                'description' => 'Layout com texto, descrição, imagem e rodapé',
+                'preview' => '/bundles/novosgasettings/images/layout1.png',
+                'available' => $hasImage && $hasText && $hasDescription && $hasFooter,
+                'requires' => [
+                    'texto' => $hasText,
+                    'descricao' => $hasDescription,
+                    'image' => $hasImage,
+                    'footer' => $hasFooter
+                ],
+                'missingRequirements' => $this->getMissingRequirements($hasImage, $hasText, $hasDescription, $hasFooter),
+                'selected' => $painelConfig ? $painelConfig->getSelectedLayout() === 'layout1' : false
+            ],
+            [
+                'id' => 'layout2',
+                'name' => 'Layout 2',
+                'description' => 'Layout com vídeo',
+                'preview' => '/bundles/novosgasettings/images/layout2.png',
+                'available' => $hasVideo,
+                'requires' => [
+                    'video_url' => $hasVideo
+                ],
+                'missingRequirements' => $hasVideo ? [] : ['video_url'],
+                'selected' => $painelConfig ? $painelConfig->getSelectedLayout() === 'layout2' : false
+            ],
+            [
+                'id' => 'layout3',
+                'name' => 'Layout 3',
+                'description' => 'Layout com texto e descrição',
+                'preview' => '/bundles/novosgasettings/images/layout3.png',
+                'available' => $hasText && $hasDescription,
+                'requires' => [
+                    'texto' => $hasText,
+                    'descricao' => $hasDescription
+                ],
+                'missingRequirements' => $this->getMissingRequirements($hasText, $hasDescription),
+                'selected' => $painelConfig ? $painelConfig->getSelectedLayout() === 'layout3' : false
+            ],
+            [
+                'id' => 'layout4',
+                'name' => 'Layout 4',
+                'description' => 'Layout padrão',
+                'preview' => '/bundles/novosgasettings/images/layout4.png',
+                'available' => true,
+                'requires' => [],
+                'missingRequirements' => [],
+                'selected' => $painelConfig ? $painelConfig->getSelectedLayout() === 'layout4' : false
+            ]
+        ];
+
+        // Preparar configuração atual
+        $currentConfig = null;
+        if ($painelConfig) {
+            $currentConfig = [
+                'id' => $painelConfig->getId(),
+                'texto' => $painelConfig->getTexto(),
+                'descricao' => $painelConfig->getDescricao(),
+                'footer' => $painelConfig->getFooter(),
+                'video_url' => $painelConfig->getVideoUrl(),
+                'image' => $hasImage,
+                'imageUrl' => $hasImage ? $this->generateUrl('novosga_settings_painel_image', ['id' => $painelConfig->getId()]) : null,
+                'selected_layout' => $painelConfig->getSelectedLayout()
+            ];
+        }
+
+        $envelope = new Envelope();
+        $envelope->setData([
+            'layouts' => $layouts,
+            'currentLayout' => $painelConfig ? $painelConfig->getSelectedLayout() : null,
+            'unidadeInfo' => [
+                'id' => $unidade->getId(),
+                'hasImage' => $hasImage,
+                'hasVideo' => $hasVideo,
+                'hasText' => $hasText,
+                'hasDescription' => $hasDescription,
+                'hasFooter' => $hasFooter
+            ],
+            'currentConfig' => $currentConfig
+        ]);
+
+        return $this->json($envelope);
+        
+    } catch (\Exception $e) {
+        $envelope = new Envelope();
+        $envelope->setSuccess(false);
+        $envelope->setMessage($e->getMessage());
+        return $this->json($envelope);
+    }
+}
+
+/**
+ * Helper method to get missing requirements
+ */
+private function getMissingRequirements(...$requirements)
+{
+    $missing = [];
+    $fields = ['image', 'texto', 'descricao', 'footer', 'video_url'];
+    foreach ($requirements as $index => $hasRequirement) {
+        if (!$hasRequirement && isset($fields[$index])) {
+            $missing[] = $fields[$index];
+        }
+    }
+    return $missing;
+}
+
 }

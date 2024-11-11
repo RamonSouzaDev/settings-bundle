@@ -20,6 +20,14 @@
             automaticCall: {
                 enabled: false,
                 interval: 0
+            },
+            painelConfig: painelConfig || {
+                texto: '',
+                descricao: '',
+                footer: '',
+                videoUrl: '',
+                imageUrl: null,
+                image: null
             }
         },
         computed: {
@@ -45,12 +53,77 @@
             }
         },
         methods: {
+
+            updatePainel() {
+                const formData = new FormData();
+            
+                Object.keys(this.painelConfig).forEach(key => {
+                    if (key !== 'image' && key !== 'imageUrl' && this.painelConfig[key] !== null) {
+                        formData.append(key, this.painelConfig[key]);
+                    }
+                });
+            
+                if (this.painelConfig.image instanceof File) {
+                    formData.append('image', this.painelConfig.image);
+                }
+            
+                // Log para verificar o conteúdo do formData antes do envio
+                for (let [key, value] of formData.entries()) {
+                    console.log(key, value);
+                }
+            
+                fetch(App.url('/novosga.settings/update_painel'), {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        this.painelConfig = data.data;
+                        App.Notification.show('Configurações do painel atualizadas com sucesso');
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro ao atualizar configurações do painel:', error);
+                    App.Notification.show('Erro ao atualizar configurações do painel', 'error');
+                });
+            },
+            
+            
+            
+            
+
+            onFileChange(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    this.painelConfig.image = file;
+                }
+            },
+            
+
             showServicos: function () {
                 this.loadServicos().then(function () {
                     $('#dialog-servicos').modal('show');
                 });
             },
 
+            onPainelImageChange(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    this.painelImageFile = file;
+                    
+                    // Preview da imagem
+                    const reader = new FileReader();
+                    reader.onload = e => {
+                        if (this.painelConfig) {
+                            this.painelConfig.imageUrl = e.target.result;
+                        } else {
+                            this.painelConfig = { imageUrl: e.target.result };
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            },
             getAutomaticCallSettings() {
                 App.ajax({
                     url: App.url('/novosga.settings/get_automatic_call'),
@@ -326,7 +399,33 @@
                 });
             },
         },
+        watch: {
+            'painelConfig.texto'(newVal) {
+                if (this.painelConfig) {
+                    this.painelConfig.texto = newVal;
+                }
+            },
+            'painelConfig.descricao'(newVal) {
+                if (this.painelConfig) {
+                    this.painelConfig.descricao = newVal;
+                }
+            },
+            'painelConfig.footer'(newVal) {
+                if (this.painelConfig) {
+                    this.painelConfig.footer = newVal;
+                }
+            },
+            'painelConfig.videoUrl'(newVal) {
+                if (this.painelConfig) {
+                    this.painelConfig.videoUrl = newVal;
+                }
+            }
+        },
         mounted() {
+
+            if (!App.Notification.allowed()) {
+                document.getElementById('notification').style.display = 'inline';
+            }
 
             App.SSE.connect([
                 `/unidades/${this.unidade.id}/fila`,
@@ -344,6 +443,17 @@
             this.loadServicosUnidade();
             this.loadContadores();
             this.getAutomaticCallSettings();    
+
+             // Inicializar inputs de arquivo
+             document.querySelectorAll('.custom-file-input').forEach(input => {
+                input.addEventListener('change', e => {
+                    const fileName = e.target.files[0]?.name ?? '';
+                    const next = e.target.nextElementSibling;
+                    if (next) {
+                        next.innerText = fileName;
+                    }
+                });
+            });
         }
     });
 
